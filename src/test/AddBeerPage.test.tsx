@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import nock, { RequestBodyMatcher } from "nock";
 import axios from "axios";
 import {AddBeerPage} from "../pages/AddBeerPage";
+import { Beer } from "../interfaces/Beer";
 
 const API_URL = "https://f5-beers-065cad3017be.herokuapp.com";
 
@@ -32,49 +33,56 @@ describe("Iteration 7", () => {
     });
 
     test("renders the 'name' input field", async () => {
-      const nameInput = screen.getByRole('input',{name:"name"});
+      const nameInput = screen.getByLabelText("name");
+      // const nameInput = screen.getByRole('input',{name:"name"});
       await waitFor(() => {
         expect(nameInput).not.toBeNull();
       });
     });
 
     test("renders the 'tagline' input field", async () => {
-      const taglineInput = screen.getByRole('input',{name:"tagline"});
+      const taglineInput = screen.getByLabelText('tagline');
+      // const taglineInput = screen.getByRole('input',{name:"tagline"});
       await waitFor(() => {
         expect(taglineInput).not.toBeNull();
       });
     });
 
     test("renders the 'description' input field", async () => {
-      const descriptionInput = screen.getByRole('textarea',{name:"description"});
+
+      const descriptionInput = screen.getByRole('textbox',{name:"description"});
       await waitFor(() => {
         expect(descriptionInput).not.toBeNull();
       });
     });
 
     test("renders the 'first_brewed' input field", async () => {
-      const firstBrewedInput = screen.getByRole('input',{name:'first_brewed'});
+      const firstBrewedInput = screen.getByLabelText('first_brewed');
+      // const firstBrewedInput = screen.getByRole('input',{name:'first_brewed'});
       await waitFor(() => {
         expect(firstBrewedInput).not.toBeNull();
       });
     });
 
     test("renders the 'brewers_tips' input field", async () => {
-      const brewersTipsInput = screen.getByRole('input',{name:"brewers_tips"});
+      const brewersTipsInput = screen.getByLabelText('brewers_tips');
+      // const brewersTipsInput = screen.getByRole('input',{name:"brewers_tips"});
       await waitFor(() => {
         expect(brewersTipsInput).not.toBeNull();
       });
     });
 
     test("renders the 'contributed_by' input field", async () => {
-      const contributedByInput = screen.getByRole('input',{name:"contributed_by"});
+      const contributedByInput = screen.getByLabelText('contributed_by');
+      // const contributedByInput = screen.getByRole('input',{name:"contributed_by"});
       await waitFor(() => {
         expect(contributedByInput).not.toBeNull();
       });
     });
 
     test("renders the 'attenuation_level' input field", async () => {
-      const attenuationInput = screen.getByRole('input',{name:"attenuation_level"});
+      const attenuationInput = screen.getByLabelText('attenuation_level');
+      // const attenuationInput = screen.getByRole('input',{name:"attenuation_level"});
       await waitFor(() => {
         expect(attenuationInput).not.toBeNull();
       });
@@ -89,21 +97,23 @@ describe("Iteration 7", () => {
     });
 
     test("sends form values to the API via POST request when the form is submitted", async () => {
-      let requestBody;
+      let requestBody: Beer;
       const scope = nock(API_URL)
           .post("/beers", (body: RequestBodyMatcher) => {
-              requestBody = body;
+            console.log(body);
+
+              requestBody = body as unknown as Beer;
               return true;
           })
           .reply(200,{});
 
-      const nameInput = screen.queryByRole('input',{name:"name"}) as HTMLElement;
-      const taglineInput = screen.queryByRole('input',{name:"tagline"}) as HTMLElement;
-      const descriptionInput = screen.queryByRole('textarea',{name:"description"}) as HTMLElement;
-      const firstBrewedInput = screen.queryByRole('input',{name:"first_brewed"}) as HTMLElement;
-      const brewersTipsInput = screen.queryByRole('input',{name:"rewers_tips"}) as HTMLElement;
-      const contributedByInput = screen.queryByRole('input',{name:"ontributed_by"}) as HTMLElement;
-      const attenuationInput = screen.queryByRole('input',{name:"ttenuation_level"}) as HTMLElement;
+      const nameInput = screen.getByLabelText('name') ;
+      const taglineInput = screen.getByLabelText('tagline') ;
+      const descriptionInput = screen.queryByRole('textbox',{name:"description"}) as HTMLElement;
+      const firstBrewedInput = screen.getByLabelText('first_brewed') ;
+      const brewersTipsInput = screen.getByLabelText('brewers_tips') ;
+      const contributedByInput = screen.getByLabelText('contributed_by') ;
+      const attenuationInput = screen.getByLabelText('attenuation_level') ;
 
       await userEvent.type(nameInput, newBeer.name);
       await userEvent.type(taglineInput,newBeer.tagline);
@@ -117,15 +127,13 @@ describe("Iteration 7", () => {
 
       scope.done();
 
-      expect(requestBody.name).toBe(newBeer.name);
-      expect(requestBody.tagline).toBe(newBeer.tagline);
-      expect(requestBody.description).toBe(newBeer.description);
-      expect(requestBody.first_brewed).toBe(newBeer.first_brewed);
-      expect(requestBody.brewers_tips).toBe(newBeer.brewers_tips);
-      expect(requestBody.attenuation_level).toBe(
-        String(newBeer.attenuation_level)
-      );
-      expect(requestBody.brewers_tips).toBe(newBeer.brewers_tips);
+      await waitFor(() => {expect(requestBody.name).toBe(newBeer.name)});
+      await waitFor(() => {expect(requestBody.tagline).toBe(newBeer.tagline)});
+      await waitFor(() => {expect(requestBody.description).toBe(newBeer.description)});
+      await waitFor(() => {expect(requestBody.first_brewed).toBe(newBeer.first_brewed)});
+      await waitFor(() => {expect(requestBody.brewers_tips).toBe(newBeer.brewers_tips)});
+      await waitFor(() => {expect(requestBody.attenuation_level).toBe(String(newBeer.attenuation_level))});
+      await waitFor(() => {expect(requestBody.brewers_tips).toBe(newBeer.brewers_tips)});
     });
   });
 });

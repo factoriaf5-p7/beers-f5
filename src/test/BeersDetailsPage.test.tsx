@@ -1,9 +1,10 @@
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route, createMemoryRouter, RouterProvider } from "react-router-dom";
 import nock, { Scope } from "nock";
 import axios from "axios";
-import App from "../App";
+import { BeersDetailPage } from "../pages/BeersDetailPage";
+
 
 const API_URL = "https://f5-beers-065cad3017be.herokuapp.com";
 
@@ -26,38 +27,45 @@ describe("Iteration 5", () => {
     const attenuationPattern = new RegExp(beer.attenuation_level.toString(), "i");
     const descriptionPattern = new RegExp(beer.description, "i");
     const contributedByPattern = new RegExp(beer.contributed_by, "i");
-
+    const routes = [
+      {
+        path: "/beers/:beerId",
+        element: <BeersDetailPage />,
+      },
+    ];
     let scope: Scope;
 
-    beforeEach(() => {
-      scope = nock(API_URL).get("/beers/a1").reply(200, beer);
 
-      render(
-        <MemoryRouter initialEntries={["/beers/a1"]}>
-          <App />
-        </MemoryRouter>
-      );
+    beforeEach(() => {
+      const router = createMemoryRouter(routes, {
+        initialEntries: ["/", "/beers/a1"],
+        initialIndex: 1,
+      });
+
+      scope = nock(API_URL).get("/beers/a1").reply(200, beer);
+      render(<RouterProvider router={router} />);
     });
 
     afterEach(() => {
       scope.done();
     });
 
+    test("renders the name of the selected beer", async () => {
+
+      await waitFor(() => screen.getByText(namePattern))
+      expect(screen.getByText(namePattern)).toBeInTheDocument();
+      });
+    // });
     test("renders the image of the selected beer", async () => {
       await waitFor(() => {
         const images = screen.getAllByRole("img");
+        console.log(images);
+
         expect(
           images.find((img) => img.getAttribute("src") === beer.image_url)
         ).toHaveAttribute("src", beer.image_url);
       });
     });
-
-    test("renders the name of the selected beer", async () => {
-      await waitFor(() => {
-        expect(screen.getByText(namePattern)).toBeInTheDocument();
-      });
-    });
-
     test("renders the tagline of the selected beer", async () => {
       await waitFor(() => {
         expect(screen.getByText(taglinePattern)).toBeInTheDocument();
